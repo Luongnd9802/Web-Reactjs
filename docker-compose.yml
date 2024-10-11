@@ -1,0 +1,46 @@
+services:
+  frontend:
+    build:
+      context: Frontend  # Đường dẫn đến thư mục Frontend
+    ports:
+      - "3000:3000"  # Map port 3000 của container đến port 3000 của máy host
+    networks:
+      - app-network
+    depends_on:
+      - backend  # Đảm bảo rằng backend đã chạy trước khi frontend khởi động
+
+  backend:
+    build:
+      context: Backend  # Đường dẫn đến thư mục Backend
+    ports:
+      - "8000:8000"  # Map port 8000 của container đến port 8000 của máy host
+    networks:
+      - app-network
+    environment:
+      MYSQL_HOST: mysql  # MySQL sẽ được khởi chạy dưới tên dịch vụ 'mysql'
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: blogapplication  # Tên database bạn muốn dùng
+      MYSQL_USER: root  # Tên người dùng cho MySQL (sử dụng root)
+      MYSQL_PASSWORD: 000000  # Mật khẩu của người dùng root
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0  # Image MySQL phiên bản 8.0
+    restart: always
+    networks:
+      - app-network  # Tự động khởi động lại nếu MySQL container bị dừng
+    environment:
+      MYSQL_ROOT_PASSWORD: 000000  # Mật khẩu của tài khoản root
+      MYSQL_DATABASE: blogapplication  # Tạo database tự động khi khởi động
+    volumes:
+      - mysql_data:/var/lib/mysql  # Lưu trữ dữ liệu MySQL trên volume để giữ lại giữa các lần khởi động
+    ports:
+      - "3307:3306"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
